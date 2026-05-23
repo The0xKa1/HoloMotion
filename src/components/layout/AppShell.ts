@@ -34,6 +34,17 @@ export class AppShell {
     this.options.timeSlider.value = String(Math.round(progress * 1000));
   }
 
+  setPlaying(playing: boolean, notify: boolean = true): void {
+    if (this.playing === playing) return;
+    this.playing = playing;
+    this.renderPlayIcon();
+    if (notify) this.options.onPlayChange(playing);
+  }
+
+  isPlaying(): boolean {
+    return this.playing;
+  }
+
   private bind(): void {
     this.options.railItems.forEach((button) => {
       button.addEventListener("click", () => {
@@ -56,14 +67,15 @@ export class AppShell {
     });
 
     this.options.playButton.addEventListener("click", () => {
-      this.playing = !this.playing;
-      this.renderPlayIcon();
-      this.options.onPlayChange(this.playing);
+      this.setPlaying(!this.playing);
     });
 
     this.options.stressToggle.addEventListener("change", () => this.options.onStressChange(this.options.stressToggle.checked));
     this.options.speedSlider.addEventListener("input", () => this.options.onSpeedChange(Number(this.options.speedSlider.value) / 100));
-    this.options.timeSlider.addEventListener("input", () => this.options.onScrub(Number(this.options.timeSlider.value) / 1000));
+    this.options.timeSlider.addEventListener("input", () => {
+      this.setPlaying(false);
+      this.options.onScrub(Number(this.options.timeSlider.value) / 1000);
+    });
     this.options.cameraButton.addEventListener("click", () => this.options.onCameraToggle());
   }
 

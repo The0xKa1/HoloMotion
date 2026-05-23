@@ -126,6 +126,7 @@ const timeline = new Timeline({
   container: dom.timelineFrames,
   label: dom.timelineLabel,
   onScrub: (nextProgress) => {
+    shell.setPlaying(false);
     state.progress = nextProgress;
     frameBuffer.reset();
     mockStream.pushFrame(performance.now());
@@ -268,11 +269,15 @@ const importDrawer = new ImportDrawer({
       motion: clip.motion,
     };
     mockStream.resetForSeed(state.exerciseId);
+    state.progress = 0;
+    shell.setPlaying(false);
+    shell.setProgress(0);
     bus.emit("seed:update", {
       exercise: exercises[state.exerciseId],
       message: `Imported · ${clip.name}`,
     });
     importDrawer.close();
+    mockStream.pushFrame(performance.now());
   },
 });
 void importDrawer;
