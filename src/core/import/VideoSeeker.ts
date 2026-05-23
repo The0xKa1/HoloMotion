@@ -131,11 +131,20 @@ export class VideoSeeker {
 
   async iterate(targetFps: number, visitor: FrameVisitor): Promise<void> {
     if (!this.video) throw new Error("VideoSeeker not loaded");
+    await this.iterateRange(0, this.duration, targetFps, visitor);
+  }
+
+  async iterateRange(startSec: number, endSec: number, targetFps: number, visitor: FrameVisitor): Promise<void> {
+    if (!this.video) throw new Error("VideoSeeker not loaded");
     const fps = Math.max(1, targetFps);
-    const total = Math.max(1, Math.round(this.duration * fps));
-    const step = this.duration / total;
+    const start = clamp(startSec, 0, this.duration);
+    const end = clamp(endSec, start, this.duration);
+    const duration = Math.max(1 / fps, end - start);
+    const total = Math.max(1, Math.round(duration * fps));
+    const step = duration / total;
+    const maxSeekTime = Math.max(start, end - 1 / fps / 2);
     for (let i = 0; i < total; i += 1) {
-      const t = Math.min(this.duration - 1 / fps / 2, i * step);
+      const t = clamp(start + i * step, start, maxSeekTime);
       await this.seekTo(t);
       await visitor(this.video, t, i, total);
     }
@@ -192,4 +201,8 @@ export class VideoSeeker {
       }
     });
   }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }

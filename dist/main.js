@@ -247,7 +247,6 @@ const resultsScreen = new ResultsScreen({
   exercises,
   sessionRecorder,
   aiCoach,
-  getLlmConfig: () => cameraSettings.getLlmConfig(),
   getPersona: () => cameraSettings.getPersona(),
 });
 
