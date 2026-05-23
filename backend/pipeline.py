@@ -18,16 +18,34 @@ def safe_name(raw: str) -> str:
     return cleaned or "imported"
 
 
-def extract_frames(video_path: Path, frames_dir: Path, target_fps: int) -> int:
-    """Run ffmpeg, write `frame_%05d.jpg` to frames_dir. Returns frame count."""
+def extract_frames(
+    video_path: Path,
+    frames_dir: Path,
+    target_fps: int,
+    *,
+    start_sec: float | None = None,
+    end_sec: float | None = None,
+) -> int:
+    """Run ffmpeg, write `frame_%05d.jpg` to frames_dir. Returns frame count.
+
+    When start_sec/end_sec are provided, ffmpeg uses input-side seeking
+    (`-ss` before `-i`) plus an output `-to` so the slice is keyframe-fast
+    and frame-accurate. Both bounds are in seconds, relative to the source.
+    """
     frames_dir.mkdir(parents=True, exist_ok=True)
     # Clear any pre-existing frames so the count is accurate.
     for p in frames_dir.glob("frame_*.jpg"):
         p.unlink()
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-i", str(video_path),
+    cmd: list[str] = ["ffmpeg", "-y"]
+    if start_sec is not None and start_sec > 0:
+        cmd += ["-ss", f"{start_sec:.3f}"]
+    cmd += ["-i", str(video_path)]
+    if end_sec is not None and (start_sec is None or end_sec > start_sec):
+        # -to with input-side -ss is interpreted as duration from the seek
+        # point in modern ffmpeg, so pass the duration explicitly.
+        duration = end_sec - (start_sec or 0.0)
+        cmd += ["-t", f"{duration:.3f}"]
+    cmd += [
         "-vf", f"fps={target_fps}",
         "-q:v", "3",
         str(frames_dir / "frame_%05d.jpg"),
@@ -49,6 +67,8 @@ def run_pipeline(
     motion: str = "squat",
     target_fps: int | None = None,
     name: str | None = None,
+    start_sec: float | None = None,
+    end_sec: float | None = None,
     progress: Callable[[str, int, int, str], None] | None = None,
 ) -> dict:
     """Returns a 10-field dict matching the HTTP response contract."""
@@ -70,9 +90,16 @@ def run_pipeline(
         if progress:
             progress(stage, current, total, note)
 
-    emit("extract", 0, 1, "ffmpeg")
-    frame_count = extract_frames(video_path, frames_dir, fps)
-    emit("extract", 1, 1, f"{frame_count} frames")
+    range_note = ""
+    if start_sec is not None or end_sec is not None:
+        s = start_sec if start_sec is not None else 0.0
+        e = end_sec if end_sec is not None else float("inf")
+        range_note = f" [{s:.2f}s, {e:.2f}s]"
+    emit("extract", 0, 1, f"ffmpeg{range_note}")
+    frame_count = extract_frames(
+        video_path, frames_dir, fps, start_sec=start_sec, end_sec=end_sec
+    )
+    emit("extract", 1, 1, f"{frame_count} frames{range_note}")
 
     def infer_cb(current: int, total: int, note: str) -> None:
         emit("infer", current, total, note)

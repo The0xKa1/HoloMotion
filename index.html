@@ -388,6 +388,16 @@
         </section>
         <section class="drawer-section">
           <div class="section-head">
+            <h3>MLLM 分段</h3>
+            <span>可选：先用大模型切出动作段</span>
+          </div>
+          <button id="importSegment" class="secondary-button" type="button">用 MLLM 切片</button>
+          <p id="segmentSummary" class="segment-summary"></p>
+          <div id="segmentList" class="segment-list is-empty"></div>
+          <p class="settings-hint">不选段时整段导入。选中某段后，后端只对该时间区间抽帧/推理。</p>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
             <h3>PARSE</h3>
             <span id="importStatus">等待上传视频</span>
           </div>
@@ -397,7 +407,7 @@
             <button id="importStart" class="secondary-button" type="button">开始解析</button>
             <button id="importApply" class="primary-button" type="button">应用为当前教练</button>
           </div>
-          <p class="settings-hint">使用 Heavy 模型按 30fps 离线抽帧；首次解析需要下载 ~10MB 模型。会话刷新会回到默认教练。</p>
+          <p class="settings-hint">视频会上传到 SAM3D 导入后端 (:8765)；模型在 GPU 上跑，~30s/100 帧。</p>
         </section>
       </div>
     </aside>

@@ -115,6 +115,9 @@ export interface DomRefs {
   importMotionSelect: HTMLSelectElement;
   importStart: HTMLButtonElement;
   importApply: HTMLButtonElement;
+  importSegment: HTMLButtonElement;
+  segmentList: HTMLElement;
+  segmentSummary: HTMLElement;
   importProgress: HTMLElement;
   importProgressLabel: HTMLElement;
   importStatus: HTMLElement;
@@ -244,6 +247,9 @@ export function collectDomRefs(): DomRefs {
     importMotionSelect: $("#importMotionSelect") as HTMLSelectElement,
     importStart: $("#importStart") as HTMLButtonElement,
     importApply: $("#importApply") as HTMLButtonElement,
+    importSegment: $("#importSegment") as HTMLButtonElement,
+    segmentList: $("#segmentList"),
+    segmentSummary: $("#segmentSummary"),
     importProgress: $("#importProgress"),
     importProgressLabel: $("#importProgressLabel"),
     importStatus: $("#importStatus"),

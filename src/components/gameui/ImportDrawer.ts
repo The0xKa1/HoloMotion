@@ -1,7 +1,17 @@
 import { drawerStack } from "../../core/DrawerStack.js";
 import { buildFrameThumbnailsFromMeta, loadCoachClip } from "../../core/import/loadCoachClip.js";
 import { loadMeshClip, type MeshClip } from "../../core/import/MeshClip.js";
+import { VideoSeeker } from "../../core/import/VideoSeeker.js";
+import { SegmentResourceStore, type SegmentResource } from "../../core/mllm/SegmentResourceStore.js";
+import {
+  VideoSegmentationClient,
+  sampleFramesAtInterval,
+  type MllmVideoSegment,
+} from "../../core/mllm/VideoSegmentationClient.js";
 import type { CoachClip, SeedMotion } from "../../types/motion.js";
+
+const SEGMENT_SAMPLE_INTERVAL_SEC = 1.5;
+const SEGMENT_THUMB_MAX_WIDTH = 160;
 
 export interface ImportApplyPayload {
   id: string;
@@ -41,6 +51,9 @@ interface ImportDrawerOptions {
   motionSelect: HTMLSelectElement;
   startButton: HTMLButtonElement;
   applyButton: HTMLButtonElement;
+  segmentButton: HTMLButtonElement;
+  segmentList: HTMLElement;
+  segmentSummary: HTMLElement;
   progressBar: HTMLElement;
   progressLabel: HTMLElement;
   statusLabel: HTMLElement;
@@ -57,6 +70,9 @@ export class ImportDrawer {
   private file: File | null = null;
   private pending: PendingImport | null = null;
   private busy = false;
+  private segmentClient = new VideoSegmentationClient();
+  private resourceStore = new SegmentResourceStore();
+  private selectedSegment: MllmVideoSegment | null = null;
 
   constructor(options: ImportDrawerOptions) {
     this.options = options;
@@ -73,6 +89,8 @@ export class ImportDrawer {
     this.setProgress(0, 0);
     this.options.startButton.disabled = true;
     this.options.applyButton.disabled = true;
+    this.options.segmentButton.disabled = true;
+    this.renderSegments([]);
   }
 
   open(): void {
@@ -118,6 +136,7 @@ export class ImportDrawer {
       }
     });
 
+    this.options.segmentButton.addEventListener("click", () => void this.runSegmentation());
     this.options.startButton.addEventListener("click", () => void this.runImport());
     this.options.applyButton.addEventListener("click", () => {
       if (!this.pending) return;
@@ -135,18 +154,163 @@ export class ImportDrawer {
   private handleFile(file: File | null): void {
     this.file = file;
     this.pending = null;
+    this.selectedSegment = null;
+    this.resourceStore.clear();
+    this.renderSegments([]);
     this.options.applyButton.disabled = true;
     this.setProgress(0, 0);
     if (!file) {
       this.setStatus("等待上传视频");
       this.options.startButton.disabled = true;
+      this.options.segmentButton.disabled = true;
       this.options.preview.removeAttribute("src");
       return;
     }
     this.setStatus(`已选择 ${file.name}`);
     this.options.startButton.disabled = false;
+    this.options.segmentButton.disabled = false;
     const url = URL.createObjectURL(file);
     this.options.preview.src = url;
+  }
+
+  private async runSegmentation(): Promise<void> {
+    if (!this.file || this.busy) return;
+    this.busy = true;
+    this.options.segmentButton.disabled = true;
+    this.options.startButton.disabled = true;
+    this.options.applyButton.disabled = true;
+    this.selectedSegment = null;
+    this.renderSegments([]);
+    this.setStatus("采样关键帧…");
+    this.setProgress(0.1);
+
+    const seeker = new VideoSeeker(this.file);
+    try {
+      const meta = await seeker.load();
+      const frames = await sampleFramesAtInterval(seeker, SEGMENT_SAMPLE_INTERVAL_SEC);
+      this.setStatus(`已采样 ${frames.length} 帧，调用 MLLM 分段…`);
+      this.setProgress(0.45);
+
+      const result = await this.segmentClient.segmentVideo({
+        fileName: this.file.name,
+        durationSeconds: meta.durationSeconds,
+        frames,
+      });
+
+      this.setStatus("生成 segment 缩略图…");
+      this.setProgress(0.85);
+      const thumbnails = await this.buildSegmentThumbnails(seeker, result.segments);
+
+      const resources = this.resourceStore.replace(this.file, result, thumbnails);
+      this.renderSegments(resources);
+      this.setStatus(`分段完成 · ${resources.length} 段`);
+      this.setProgress(1);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[ImportDrawer] MLLM segmentation failed", err);
+      this.setStatus(`分段失败：${msg}`);
+      this.setProgress(0);
+      this.renderSegments([]);
+    } finally {
+      seeker.dispose();
+      this.busy = false;
+      this.options.segmentButton.disabled = this.file === null;
+      this.options.startButton.disabled = this.file === null;
+    }
+  }
+
+  private async buildSegmentThumbnails(
+    seeker: VideoSeeker,
+    segments: MllmVideoSegment[],
+  ): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (segments.length === 0) return out;
+    const video = seeker.getVideo();
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return out;
+    for (const segment of segments) {
+      const midpoint = (segment.startSec + segment.endSec) / 2;
+      try {
+        await seeker.iterateRange(midpoint, midpoint + 0.01, 30, (v) => {
+          const vw = v.videoWidth || 320;
+          const vh = v.videoHeight || 180;
+          const scale = Math.min(1, SEGMENT_THUMB_MAX_WIDTH / vw);
+          canvas.width = Math.max(1, Math.round(vw * scale));
+          canvas.height = Math.max(1, Math.round(vh * scale));
+          ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+          out.set(segment.id, canvas.toDataURL("image/jpeg", 0.7));
+        });
+      } catch {
+        // Drop this thumbnail — segment will render without preview.
+      }
+    }
+    return out;
+  }
+
+  private renderSegments(resources: SegmentResource[]): void {
+    const list = this.options.segmentList;
+    list.textContent = "";
+    list.classList.toggle("is-empty", resources.length === 0);
+
+    if (resources.length === 0) {
+      const result = this.resourceStore.all();
+      this.options.segmentSummary.textContent =
+        result.length === 0 ? "" : result[0]?.summary ?? "";
+      return;
+    }
+
+    this.options.segmentSummary.textContent = resources[0]?.summary ?? "";
+
+    for (const resource of resources) {
+      const { segment } = resource;
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "segment-card";
+      card.dataset.segmentId = segment.id;
+      if (this.selectedSegment?.id === segment.id) card.classList.add("is-selected");
+
+      if (resource.thumbnail) {
+        const img = document.createElement("img");
+        img.src = resource.thumbnail;
+        img.alt = segment.actionLabel;
+        img.className = "segment-thumb";
+        card.appendChild(img);
+      }
+
+      const body = document.createElement("div");
+      body.className = "segment-body";
+
+      const title = document.createElement("div");
+      title.className = "segment-title";
+      title.textContent = segment.actionLabel || segment.name;
+      body.appendChild(title);
+
+      const range = document.createElement("div");
+      range.className = "segment-range";
+      range.textContent = `${segment.startSec.toFixed(1)}s → ${segment.endSec.toFixed(1)}s · ${(
+        segment.endSec - segment.startSec
+      ).toFixed(1)}s`;
+      body.appendChild(range);
+
+      if (segment.notes) {
+        const notes = document.createElement("div");
+        notes.className = "segment-notes";
+        notes.textContent = segment.notes;
+        body.appendChild(notes);
+      }
+
+      card.appendChild(body);
+      card.addEventListener("click", () => this.selectSegment(segment));
+      list.appendChild(card);
+    }
+  }
+
+  private selectSegment(segment: MllmVideoSegment): void {
+    this.selectedSegment = segment;
+    this.renderSegments(this.resourceStore.all());
+    const range = `${segment.startSec.toFixed(1)}s → ${segment.endSec.toFixed(1)}s`;
+    this.setStatus(`已选段 ${segment.actionLabel} (${range})`);
   }
 
   private async runImport(): Promise<void> {
@@ -154,13 +318,22 @@ export class ImportDrawer {
     this.busy = true;
     this.options.startButton.disabled = true;
     this.options.applyButton.disabled = true;
-    this.setStatus(`上传到 ${this.options.backendUrl}…`);
+    this.options.segmentButton.disabled = true;
+    const segment = this.selectedSegment;
+    const range = segment
+      ? ` · ${segment.startSec.toFixed(1)}s–${segment.endSec.toFixed(1)}s`
+      : "";
+    this.setStatus(`上传到 ${this.options.backendUrl}${range}…`);
     this.setProgress(0.05);
 
     const form = new FormData();
     form.append("file", this.file);
     form.append("motion", this.options.motionSelect.value || "flow");
     form.append("name", stripExt(this.file.name));
+    if (segment) {
+      form.append("startSec", segment.startSec.toFixed(3));
+      form.append("endSec", segment.endSec.toFixed(3));
+    }
 
     const stopSim = this.simulateProgress();
     try {
@@ -204,6 +377,7 @@ export class ImportDrawer {
     } finally {
       stopSim();
       this.options.startButton.disabled = false;
+      this.options.segmentButton.disabled = this.file === null;
       this.busy = false;
     }
   }

@@ -83,11 +83,17 @@ async def import_video(
     motion: Optional[str] = Form("squat"),
     targetFps: Optional[int] = Form(None),
     name: Optional[str] = Form(None),
+    startSec: Optional[float] = Form(None),
+    endSec: Optional[float] = Form(None),
 ):
     if app.state.estimator is None:
         raise HTTPException(status_code=503, detail={"error": "SAM model unavailable", "stage": "startup"})
     if motion and motion not in VALID_MOTIONS:
         raise HTTPException(status_code=400, detail={"error": f"unsupported motion '{motion}'", "stage": "input"})
+    if startSec is not None and startSec < 0:
+        raise HTTPException(status_code=400, detail={"error": "startSec must be >= 0", "stage": "input"})
+    if startSec is not None and endSec is not None and endSec <= startSec:
+        raise HTTPException(status_code=400, detail={"error": "endSec must be > startSec", "stage": "input"})
 
     job_id = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
     suffix = Path(file.filename or "upload.mp4").suffix or ".mp4"
@@ -99,8 +105,11 @@ async def import_video(
         if upload_path.stat().st_size == 0:
             raise HTTPException(status_code=400, detail={"error": "empty upload", "stage": "input"})
 
-        logger.info("[%s] received %s (%.1f KB) motion=%s",
-                    job_id, file.filename, upload_path.stat().st_size / 1024, motion)
+        range_note = ""
+        if startSec is not None or endSec is not None:
+            range_note = f" slice=[{startSec},{endSec}]"
+        logger.info("[%s] received %s (%.1f KB) motion=%s%s",
+                    job_id, file.filename, upload_path.stat().st_size / 1024, motion, range_note)
         t0 = time.time()
         try:
             result = pipeline.run_pipeline(
@@ -110,6 +119,8 @@ async def import_video(
                 motion=motion or "squat",
                 target_fps=targetFps,
                 name=name or Path(file.filename or "imported").stem,
+                start_sec=startSec,
+                end_sec=endSec,
                 progress=lambda stage, cur, total, note: logger.info(
                     "[%s] %-7s %d/%d %s", job_id, stage, cur, total, note
                 ),

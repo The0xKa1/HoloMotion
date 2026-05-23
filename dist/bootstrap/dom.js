@@ -115,6 +115,9 @@ export const $$ =                    (selector        )      =>
                                         
                                  
                                  
+                                   
+                           
+                              
                               
                                    
                             
@@ -244,6 +247,9 @@ export function collectDomRefs()          {
     importMotionSelect: $("#importMotionSelect")                     ,
     importStart: $("#importStart")                     ,
     importApply: $("#importApply")                     ,
+    importSegment: $("#importSegment")                     ,
+    segmentList: $("#segmentList"),
+    segmentSummary: $("#segmentSummary"),
     importProgress: $("#importProgress"),
     importProgressLabel: $("#importProgressLabel"),
     importStatus: $("#importStatus"),
