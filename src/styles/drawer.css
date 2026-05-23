@@ -228,6 +228,98 @@
 
 .drawer-backdrop.is-open { opacity: 1; pointer-events: auto; }
 
+.segment-list {
+  display: grid;
+  gap: 10px;
+}
+
+.segment-card {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border: var(--hairline);
+  background: var(--surface);
+}
+
+.segment-thumb {
+  width: 60px;
+  height: 106px;
+  padding: 0;
+  border: var(--hairline);
+  background: rgba(17, 17, 17, 0.06);
+  overflow: hidden;
+}
+
+.segment-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.segment-main {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.segment-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.segment-top strong {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment-top span,
+.segment-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.segment-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.segment-tags span {
+  max-width: 100%;
+  padding: 3px 6px;
+  border: var(--hairline);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.segment-actions .primary-button,
+.segment-actions .secondary-button {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
 .settings-field {
   display: grid;
   gap: 6px;
@@ -313,6 +405,12 @@
   max-height: 200px;
   background: #000;
   object-fit: contain;
+  border: var(--hairline);
+  transition: box-shadow 160ms linear;
+}
+
+.import-preview.is-previewing {
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.28);
 }
 
 .import-preview:not([src]) { display: none; }

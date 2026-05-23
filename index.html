@@ -301,25 +301,13 @@
             <span>post-match diagnosis</span>
           </div>
           <label class="settings-field">
-            <span>Base URL</span>
-            <input id="llmBaseUrl" type="text" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false" />
-          </label>
-          <label class="settings-field">
-            <span>API Key</span>
-            <input id="llmApiKey" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
-          </label>
-          <label class="settings-field">
-            <span>Model</span>
-            <input id="llmModel" type="text" placeholder="gpt-4o-mini" autocomplete="off" spellcheck="false" />
-          </label>
-          <label class="settings-field">
             <span>诊断 persona</span>
             <select id="personaSelect">
               <option value="biomech">运动生物力学专家</option>
               <option value="baduanjin">八段锦传人</option>
             </select>
           </label>
-          <p class="settings-hint">仅支持 OpenAI 兼容协议（OpenAI / 通义 / 智谱 / DeepSeek / OpenRouter）。Key 仅存本地 localStorage，不要使用主账户 key。</p>
+          <p class="settings-hint">LLM 凭据由后端 (.env) 管理，前端不再持有 API Key。后端默认监听 http://localhost:8000，端口可通过 ?api= 查询参数覆盖。</p>
         </section>
       </div>
     </aside>
@@ -347,7 +335,7 @@
             <span>建议正面 / 侧面拍摄、全身入境的 mp4，时长 3-15 秒</span>
             <input id="importFile" type="file" accept="video/*" hidden />
           </label>
-          <video id="importPreview" class="import-preview" muted playsinline></video>
+          <video id="importPreview" class="import-preview" muted playsinline controls></video>
         </section>
         <section class="drawer-section">
           <div class="section-head">
@@ -374,10 +362,18 @@
           <div class="import-progress"><i id="importProgress"></i></div>
           <div class="import-progress-label" id="importProgressLabel">—</div>
           <div class="import-actions">
+            <button id="importSegment" class="secondary-button" type="button">AI 分割</button>
             <button id="importStart" class="secondary-button" type="button">开始解析</button>
             <button id="importApply" class="primary-button" type="button">应用为当前教练</button>
           </div>
           <p class="settings-hint">使用 Heavy 模型按 30fps 离线抽帧；首次解析需要下载 ~10MB 模型。会话刷新会回到默认教练。</p>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>AI LIBRARY</h3>
+            <span id="segmentSummary">session library empty</span>
+          </div>
+          <div id="segmentList" class="segment-list"></div>
         </section>
       </div>
     </aside>

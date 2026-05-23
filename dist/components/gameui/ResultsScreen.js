@@ -4,7 +4,7 @@ import { formatCm } from "../../core/coordinates.js";
                                                                              
                                                       
 import { buildDiagnosisMessages, buildFallbackText,                   } from "../../core/llm/buildPrompt.js";
-import { streamChat,                  } from "../../core/llm/LLMClient.js";
+import { streamChat } from "../../core/llm/LLMClient.js";
 
                                 
                 
@@ -24,7 +24,6 @@ import { streamChat,                  } from "../../core/llm/LLMClient.js";
                                                 
                                    
                         
-                                     
                              
  
 
@@ -97,14 +96,9 @@ export class ResultsScreen {
       this.options.aiCoach.renderStatic(fallback, "no samples");
       return;
     }
-    const config = this.options.getLlmConfig();
-    if (!config) {
-      this.options.aiCoach.renderStatic(fallback);
-      return;
-    }
     const messages = buildDiagnosisMessages(exercise, summary, this.options.getPersona());
     void this.options.aiCoach.renderStreaming(
-      (onDelta, signal) => streamChat(config, messages, onDelta, { signal }),
+      (onDelta, signal) => streamChat(messages, onDelta, { signal }),
       fallback,
     );
   }

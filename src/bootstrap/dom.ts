@@ -83,9 +83,6 @@ export interface DomRefs {
   modalityFaceToggle: HTMLInputElement;
   recalibrateButton: HTMLButtonElement;
   calibrationStatusLabel: HTMLElement;
-  llmBaseUrl: HTMLInputElement;
-  llmApiKey: HTMLInputElement;
-  llmModel: HTMLInputElement;
   personaSelect: HTMLSelectElement;
   aiCoachCard: HTMLElement;
   aiCoachText: HTMLElement;
@@ -105,6 +102,9 @@ export interface DomRefs {
   importMotionSelect: HTMLSelectElement;
   importStart: HTMLButtonElement;
   importApply: HTMLButtonElement;
+  importSegment: HTMLButtonElement;
+  segmentList: HTMLElement;
+  segmentSummary: HTMLElement;
   importProgress: HTMLElement;
   importProgressLabel: HTMLElement;
   importStatus: HTMLElement;
@@ -199,9 +199,6 @@ export function collectDomRefs(): DomRefs {
     modalityFaceToggle: $("#modalityFaceToggle") as HTMLInputElement,
     recalibrateButton: $("#recalibrateButton") as HTMLButtonElement,
     calibrationStatusLabel: $("#calibrationStatusLabel"),
-    llmBaseUrl: $("#llmBaseUrl") as HTMLInputElement,
-    llmApiKey: $("#llmApiKey") as HTMLInputElement,
-    llmModel: $("#llmModel") as HTMLInputElement,
     personaSelect: $("#personaSelect") as HTMLSelectElement,
     aiCoachCard: $("#aiCoachCard"),
     aiCoachText: $("#aiCoachText"),
@@ -221,6 +218,9 @@ export function collectDomRefs(): DomRefs {
     importMotionSelect: $("#importMotionSelect") as HTMLSelectElement,
     importStart: $("#importStart") as HTMLButtonElement,
     importApply: $("#importApply") as HTMLButtonElement,
+    importSegment: $("#importSegment") as HTMLButtonElement,
+    segmentList: $("#segmentList"),
+    segmentSummary: $("#segmentSummary"),
     importProgress: $("#importProgress"),
     importProgressLabel: $("#importProgressLabel"),
     importStatus: $("#importStatus"),

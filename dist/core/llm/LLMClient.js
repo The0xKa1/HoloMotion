@@ -1,8 +1,4 @@
-                              
-                  
-                 
-                
- 
+import { API_BASE_URL } from "../../config.js";
 
                               
                           
@@ -19,25 +15,15 @@ const DEFAULT_MAX_TOKENS = 320;
 const DEFAULT_TEMPERATURE = 0.6;
 
 export async function streamChat(
-  settings             ,
   messages               ,
   onDelta                        ,
   options                = {},
 )                  {
-  if (!settings.baseUrl || !settings.apiKey || !settings.model) {
-    throw new Error("LLM settings incomplete");
-  }
-  const url = `${settings.baseUrl.replace(/\/$/, "")}/chat/completions`;
   const init              = {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${settings.apiKey}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: settings.model,
       messages,
-      stream: true,
       max_tokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: options.temperature ?? DEFAULT_TEMPERATURE,
     }),
@@ -45,7 +31,7 @@ export async function streamChat(
   if (options.signal) {
     init.signal = options.signal;
   }
-  const response = await fetch(url, init);
+  const response = await fetch(`${API_BASE_URL}/api/chat-stream`, init);
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");

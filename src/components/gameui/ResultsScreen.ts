@@ -4,7 +4,7 @@ import type { ExerciseConfig, ExerciseId, ScoreUpdate } from "../../types/motion
 import type { SessionRecorder } from "../../core/scoring/SessionRecorder.js";
 import type { AiCoachPanel } from "./AiCoachPanel.js";
 import { buildDiagnosisMessages, buildFallbackText, type CoachPersona } from "../../core/llm/buildPrompt.js";
-import { streamChat, type LlmSettings } from "../../core/llm/LLMClient.js";
+import { streamChat } from "../../core/llm/LLMClient.js";
 
 interface ResultsScreenOptions {
   bus: EventBus;
@@ -24,7 +24,6 @@ interface ResultsScreenOptions {
   exercises: Record<ExerciseId, ExerciseConfig>;
   sessionRecorder: SessionRecorder;
   aiCoach: AiCoachPanel;
-  getLlmConfig(): LlmSettings | null;
   getPersona(): CoachPersona;
 }
 
@@ -97,14 +96,9 @@ export class ResultsScreen {
       this.options.aiCoach.renderStatic(fallback, "no samples");
       return;
     }
-    const config = this.options.getLlmConfig();
-    if (!config) {
-      this.options.aiCoach.renderStatic(fallback);
-      return;
-    }
     const messages = buildDiagnosisMessages(exercise, summary, this.options.getPersona());
     void this.options.aiCoach.renderStreaming(
-      (onDelta, signal) => streamChat(config, messages, onDelta, { signal }),
+      (onDelta, signal) => streamChat(messages, onDelta, { signal }),
       fallback,
     );
   }

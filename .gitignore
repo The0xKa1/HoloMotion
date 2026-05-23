@@ -28,3 +28,7 @@ Thumbs.db
 # Editor / system
 .history/
 .cache/
+
+# Backend venv (created by `npm run server:install`)
+server/.venv/
+server/__pycache__/

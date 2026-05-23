@@ -176,7 +176,6 @@ const resultsScreen = new ResultsScreen({
   exercises,
   sessionRecorder,
   aiCoach,
-  getLlmConfig: () => cameraSettings.getLlmConfig(),
   getPersona: () => cameraSettings.getPersona(),
 });
 
@@ -208,9 +207,6 @@ const cameraSettings = new CameraSettings({
   modalityFaceToggle: dom.modalityFaceToggle,
   recalibrateButton: dom.recalibrateButton,
   calibrationStatusLabel: dom.calibrationStatusLabel,
-  llmBaseUrl: dom.llmBaseUrl,
-  llmApiKey: dom.llmApiKey,
-  llmModel: dom.llmModel,
   personaSelect: dom.personaSelect,
   callbacks: {
     onSafeZoneChange: (visible) => cameraOverlay.setSafeZoneVisible(visible),
@@ -246,6 +242,9 @@ const importDrawer = new ImportDrawer({
   motionSelect: dom.importMotionSelect,
   startButton: dom.importStart,
   applyButton: dom.importApply,
+  segmentButton: dom.importSegment,
+  segmentList: dom.segmentList,
+  segmentSummary: dom.segmentSummary,
   progressBar: dom.importProgress,
   progressLabel: dom.importProgressLabel,
   statusLabel: dom.importStatus,

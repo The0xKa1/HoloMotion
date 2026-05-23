@@ -83,9 +83,6 @@ export const $$ =                    (selector        )      =>
                                        
                                        
                                       
-                               
-                              
-                             
                                    
                            
                            
@@ -105,6 +102,9 @@ export const $$ =                    (selector        )      =>
                                         
                                  
                                  
+                                   
+                           
+                              
                               
                                    
                             
@@ -199,9 +199,6 @@ export function collectDomRefs()          {
     modalityFaceToggle: $("#modalityFaceToggle")                    ,
     recalibrateButton: $("#recalibrateButton")                     ,
     calibrationStatusLabel: $("#calibrationStatusLabel"),
-    llmBaseUrl: $("#llmBaseUrl")                    ,
-    llmApiKey: $("#llmApiKey")                    ,
-    llmModel: $("#llmModel")                    ,
     personaSelect: $("#personaSelect")                     ,
     aiCoachCard: $("#aiCoachCard"),
     aiCoachText: $("#aiCoachText"),
@@ -221,6 +218,9 @@ export function collectDomRefs()          {
     importMotionSelect: $("#importMotionSelect")                     ,
     importStart: $("#importStart")                     ,
     importApply: $("#importApply")                     ,
+    importSegment: $("#importSegment")                     ,
+    segmentList: $("#segmentList"),
+    segmentSummary: $("#segmentSummary"),
     importProgress: $("#importProgress"),
     importProgressLabel: $("#importProgressLabel"),
     importStatus: $("#importStatus"),
