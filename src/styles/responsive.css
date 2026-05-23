@@ -1,0 +1,32 @@
+@media (max-width: 1180px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .seed-strip { grid-template-columns: 180px minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  body { overflow: auto; }
+  .app-shell { grid-template-columns: 1fr; }
+  .rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: var(--hairline);
+  }
+  .rail-nav { display: flex; gap: 6px; margin: 0; overflow-x: auto; }
+  .rail-footer { display: none; }
+  .workspace { padding: 12px; gap: 12px; }
+  .topbar { flex-direction: column; align-items: stretch; }
+  .top-actions { justify-content: stretch; }
+  .top-actions > * { flex: 1; }
+  .seed-strip { grid-template-columns: 1fr; }
+  .seed-strip-head { border-right: 0; border-bottom: var(--hairline); }
+  .bay { grid-template-rows: auto minmax(280px, 50vh) auto; }
+  .timeline-frames { grid-template-columns: repeat(9, minmax(40px, 1fr)); }
+  .results-grid { grid-template-columns: 1fr; }
+  .results-score { border-right: 0; border-bottom: var(--hairline); }
+  .dna-drawer { width: 100vw; }
+  .score-orbit { width: 96px; height: 76px; }
+  .score-orbit span { font-size: 32px; }
+}

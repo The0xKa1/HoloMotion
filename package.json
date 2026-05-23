@@ -1,0 +1,11 @@
+{
+  "name": "holomotion-frontend-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node --no-warnings=ExperimentalWarning scripts/build.mjs",
+    "dev": "npm run build && python3 -m http.server 5173",
+    "check": "npm run build && node scripts/guardrails.mjs"
+  }
+}

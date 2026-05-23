@@ -1,0 +1,78 @@
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 6;
+}
+
+.fx-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--cool);
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+}
+
+.fx-flash.is-firing {
+  animation: flashSweep 220ms linear;
+}
+
+@keyframes flashSweep {
+  0%   { opacity: 0.85; clip-path: inset(0 100% 0 0); }
+  60%  { opacity: 0.85; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 100%); }
+}
+
+.fx-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 26px;
+  background: var(--cool);
+  color: var(--invert-fg);
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.fx-burst.is-firing {
+  animation: burstHard 520ms steps(1, end);
+}
+
+@keyframes burstHard {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.fx-combo {
+  position: absolute;
+  right: 16px;
+  top: 60px;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--invert-fg);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.fx-combo.is-firing {
+  animation: comboHard 480ms steps(1, end);
+}
+
+@keyframes comboHard {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -1,0 +1,226 @@
+export const $ = <T extends Element>(selector: string): T => {
+  const element = document.querySelector<T>(selector);
+  if (!element) throw new Error(`Missing element: ${selector}`);
+  return element;
+};
+
+export const $$ = <T extends Element>(selector: string): T[] =>
+  Array.from(document.querySelectorAll<T>(selector));
+
+export interface DomRefs {
+  stageTitle: HTMLElement;
+  mirrorTitle: HTMLElement;
+  connectionText: HTMLElement;
+  connectionDot: HTMLElement;
+  fpsLabel: HTMLElement;
+  mirrorEmpty: HTMLElement;
+  cameraVideo: HTMLVideoElement;
+  cameraOverlayCanvas: HTMLCanvasElement;
+  motionCanvas: HTMLCanvasElement;
+  loadingOverlay: HTMLElement;
+
+  metricList: HTMLElement;
+  pipelineList: HTMLElement;
+  scoreValue: HTMLElement;
+  comboLabel: HTMLElement;
+  riskBadge: HTMLElement;
+  frameLabel: HTMLElement;
+  deltaLabel: HTMLElement;
+  pipelineLatency: HTMLElement;
+  streamLabel: HTMLElement;
+  dnaList: HTMLElement;
+
+  seedCarousel: HTMLElement;
+  seedHeadName: HTMLElement;
+  modeButtons: HTMLButtonElement[];
+  timelineFrames: HTMLElement;
+  timelineLabel: HTMLElement;
+
+  fxLayer: HTMLElement;
+  fxFlash: HTMLElement;
+  fxBurst: HTMLElement;
+  fxCombo: HTMLElement;
+  coachingTip: HTMLElement;
+  mirrorStage: HTMLElement;
+
+  resultsScreen: HTMLElement;
+  resultsClose: HTMLElement;
+  resultsScore: HTMLElement;
+  resultsBeat: HTMLElement;
+  resultsCombo: HTMLElement;
+  resultsPerfect: HTMLElement;
+  resultsDelta: HTMLElement;
+  resultsRisk: HTMLElement;
+  medalName: HTMLElement;
+  resultsTitle: HTMLElement;
+  exportButton: HTMLElement;
+
+  dnaExport: HTMLElement;
+  exportClose: HTMLElement;
+  exportBar: HTMLElement;
+  exportLabel: HTMLElement;
+  exportHead: HTMLElement;
+  exportSub: HTMLElement;
+  exportQr: HTMLElement;
+  exportQrCode: HTMLElement;
+
+  dnaDrawer: HTMLElement;
+  drawerBackdrop: HTMLElement;
+  dnaButton: HTMLElement;
+  drawerClose: HTMLElement;
+
+  cameraSettingsDrawer: HTMLElement;
+  cameraSettingsButton: HTMLElement;
+  cameraSettingsClose: HTMLElement;
+  cameraDeviceSelect: HTMLSelectElement;
+  cameraResolutionSelect: HTMLSelectElement;
+  cameraFitSelect: HTMLSelectElement;
+  cameraMirrorToggle: HTMLInputElement;
+  cameraSafeZoneToggle: HTMLInputElement;
+  poseModelSelect: HTMLSelectElement;
+  modalityPoseToggle: HTMLInputElement;
+  modalityHandToggle: HTMLInputElement;
+  modalityFaceToggle: HTMLInputElement;
+  recalibrateButton: HTMLButtonElement;
+  calibrationStatusLabel: HTMLElement;
+
+  calibrationOverlay: HTMLElement;
+  calibrationTitle: HTMLElement;
+  calibrationHint: HTMLElement;
+  calibrationBar: HTMLElement;
+  calibrationSkip: HTMLButtonElement;
+
+  importDrawer: HTMLElement;
+  importButton: HTMLElement;
+  importClose: HTMLElement;
+  importFile: HTMLInputElement;
+  importDrop: HTMLElement;
+  importMotionSelect: HTMLSelectElement;
+  importStart: HTMLButtonElement;
+  importApply: HTMLButtonElement;
+  importProgress: HTMLElement;
+  importProgressLabel: HTMLElement;
+  importStatus: HTMLElement;
+  importPreview: HTMLVideoElement;
+
+  railItems: HTMLButtonElement[];
+  viewButtons: HTMLButtonElement[];
+  playButton: HTMLButtonElement;
+  playIcon: SVGElement;
+  stressToggle: HTMLInputElement;
+  speedSlider: HTMLInputElement;
+  timeSlider: HTMLInputElement;
+  cameraButton: HTMLButtonElement;
+  runPipelineButton: HTMLElement;
+  finishButton: HTMLElement;
+}
+
+export function collectDomRefs(): DomRefs {
+  return {
+    stageTitle: $("#stageTitle"),
+    mirrorTitle: $("#mirrorTitle"),
+    connectionText: $("#connectionText"),
+    connectionDot: $("#connectionDot"),
+    fpsLabel: $("#fpsLabel"),
+    mirrorEmpty: $("#mirrorEmpty"),
+    cameraVideo: $("#cameraVideo") as HTMLVideoElement,
+    cameraOverlayCanvas: $("#cameraOverlay") as HTMLCanvasElement,
+    motionCanvas: $("#motionCanvas") as HTMLCanvasElement,
+    loadingOverlay: $("#loadingOverlay"),
+
+    metricList: $("#metricList"),
+    pipelineList: $("#pipelineList"),
+    scoreValue: $("#scoreValue"),
+    comboLabel: $("#comboLabel"),
+    riskBadge: $("#riskBadge"),
+    frameLabel: $("#frameLabel"),
+    deltaLabel: $("#deltaLabel"),
+    pipelineLatency: $("#pipelineLatency"),
+    streamLabel: $("#streamLabel"),
+    dnaList: $("#dnaList"),
+
+    seedCarousel: $("#seedCarousel"),
+    seedHeadName: $("#seedHeadName"),
+    modeButtons: $$<HTMLButtonElement>("[data-mode]"),
+    timelineFrames: $("#timelineFrames"),
+    timelineLabel: $("#timelineLabel"),
+
+    fxLayer: $("#mirrorFx"),
+    fxFlash: $("#fxFlash"),
+    fxBurst: $("#fxBurst"),
+    fxCombo: $("#fxCombo"),
+    coachingTip: $("#coachingTip"),
+    mirrorStage: $("#mirrorStage"),
+
+    resultsScreen: $("#resultsScreen"),
+    resultsClose: $("#resultsClose"),
+    resultsScore: $("#resultsScore"),
+    resultsBeat: $("#resultsBeat"),
+    resultsCombo: $("#resultsCombo"),
+    resultsPerfect: $("#resultsPerfect"),
+    resultsDelta: $("#resultsDelta"),
+    resultsRisk: $("#resultsRisk"),
+    medalName: $("#medalName"),
+    resultsTitle: $("#resultsTitle"),
+    exportButton: $("#exportButton"),
+
+    dnaExport: $("#dnaExport"),
+    exportClose: $("#exportClose"),
+    exportBar: $("#exportBar"),
+    exportLabel: $("#exportLabel"),
+    exportHead: $("#exportHead"),
+    exportSub: $("#exportSub"),
+    exportQr: $("#exportQr"),
+    exportQrCode: $("#exportQrCode"),
+
+    dnaDrawer: $("#dnaDrawer"),
+    drawerBackdrop: $("#drawerBackdrop"),
+    dnaButton: $("#dnaButton"),
+    drawerClose: $("#drawerClose"),
+
+    cameraSettingsDrawer: $("#cameraSettingsDrawer"),
+    cameraSettingsButton: $("#cameraSettingsButton"),
+    cameraSettingsClose: $("#cameraSettingsClose"),
+    cameraDeviceSelect: $("#cameraDeviceSelect") as HTMLSelectElement,
+    cameraResolutionSelect: $("#cameraResolutionSelect") as HTMLSelectElement,
+    cameraFitSelect: $("#cameraFitSelect") as HTMLSelectElement,
+    cameraMirrorToggle: $("#cameraMirrorToggle") as HTMLInputElement,
+    cameraSafeZoneToggle: $("#cameraSafeZoneToggle") as HTMLInputElement,
+    poseModelSelect: $("#poseModelSelect") as HTMLSelectElement,
+    modalityPoseToggle: $("#modalityPoseToggle") as HTMLInputElement,
+    modalityHandToggle: $("#modalityHandToggle") as HTMLInputElement,
+    modalityFaceToggle: $("#modalityFaceToggle") as HTMLInputElement,
+    recalibrateButton: $("#recalibrateButton") as HTMLButtonElement,
+    calibrationStatusLabel: $("#calibrationStatusLabel"),
+
+    calibrationOverlay: $("#calibrationOverlay"),
+    calibrationTitle: $("#calibrationTitle"),
+    calibrationHint: $("#calibrationHint"),
+    calibrationBar: $("#calibrationBar"),
+    calibrationSkip: $("#calibrationSkip") as HTMLButtonElement,
+
+    importDrawer: $("#importDrawer"),
+    importButton: $("#importButton"),
+    importClose: $("#importClose"),
+    importFile: $("#importFile") as HTMLInputElement,
+    importDrop: $("#importDrop"),
+    importMotionSelect: $("#importMotionSelect") as HTMLSelectElement,
+    importStart: $("#importStart") as HTMLButtonElement,
+    importApply: $("#importApply") as HTMLButtonElement,
+    importProgress: $("#importProgress"),
+    importProgressLabel: $("#importProgressLabel"),
+    importStatus: $("#importStatus"),
+    importPreview: $("#importPreview") as HTMLVideoElement,
+
+    railItems: $$<HTMLButtonElement>(".rail-item"),
+    viewButtons: $$<HTMLButtonElement>("[data-view]"),
+    playButton: $("#playButton") as HTMLButtonElement,
+    playIcon: $("#playIcon") as unknown as SVGElement,
+    stressToggle: $("#stressToggle") as HTMLInputElement,
+    speedSlider: $("#speedSlider") as HTMLInputElement,
+    timeSlider: $("#timeSlider") as HTMLInputElement,
+    cameraButton: $("#cameraButton") as HTMLButtonElement,
+    runPipelineButton: $("#runPipelineButton"),
+    finishButton: $("#finishButton"),
+  };
+}

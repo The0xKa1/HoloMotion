@@ -1,0 +1,56 @@
+.rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 10px;
+  border-right: var(--hairline);
+  background: var(--surface);
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: var(--hairline);
+  color: var(--ink);
+  background: var(--surface);
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.04em;
+}
+
+.rail-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.rail-item {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  color: var(--muted);
+  background: transparent;
+  transition: none;
+}
+
+.rail-item:hover,
+.rail-item.is-active {
+  color: var(--invert-fg);
+  background: var(--invert-bg);
+  border-color: var(--ink);
+}
+
+.rail-footer {
+  margin-top: auto;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+}

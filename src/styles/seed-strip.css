@@ -1,0 +1,116 @@
+.seed-strip {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  border: var(--hairline);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.seed-strip-head {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  padding: 14px 16px;
+  border-right: var(--hairline);
+}
+
+.seed-strip-head .eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.seed-strip-head strong {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.seed-carousel {
+  display: flex;
+  gap: 0;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.seed-carousel::-webkit-scrollbar { height: 4px; }
+.seed-carousel::-webkit-scrollbar-thumb { background: var(--ink); }
+
+.seed-card {
+  flex: 0 0 220px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  border: 0;
+  border-right: var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  transition: none;
+}
+
+.seed-card:last-child { border-right: 0; }
+
+.seed-card:hover {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
+
+.seed-card.is-active {
+  background: var(--ink);
+  color: var(--invert-fg);
+}
+
+.seed-card .seed-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.seed-card:hover .seed-tag,
+.seed-card.is-active .seed-tag {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.seed-card .seed-name {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.seed-card .seed-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.seed-card .seed-meta b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.seed-card:hover .seed-meta,
+.seed-card.is-active .seed-meta {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.seed-card:hover .seed-meta b,
+.seed-card.is-active .seed-meta b {
+  color: var(--invert-fg);
+}

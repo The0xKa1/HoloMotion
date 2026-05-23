@@ -1,0 +1,363 @@
+import { WORLD_SPACE } from "./coordinates.js";
+import type { CameraOverlay } from "./CameraOverlay.js";
+import type { EventBus } from "./EventBus.js";
+import type { MotionFrameBuffer } from "./frameBuffer.js";
+import { ThreeResourceTracker } from "./ThreeResourceTracker.js";
+import { THREE, type MotionQuaternion, type MotionVector3 } from "./three-compat.js";
+import { bones } from "./motion/skeleton.js";
+import { StageInteractions } from "./motion/StageInteractions.js";
+import type { CameraView, JointName, MotionMode, RuntimeFrame } from "../types/motion.js";
+
+interface StageOptions {
+  canvas: HTMLCanvasElement;
+  loadingOverlay: HTMLElement;
+  frameBuffer: MotionFrameBuffer;
+  bus: EventBus;
+  mode: MotionMode;
+  view: CameraView;
+  stress: boolean;
+  cameraOverlay: CameraOverlay | null;
+  isCameraActive: () => boolean;
+}
+
+void WORLD_SPACE;
+
+// Target the rough centre of mass of the seed skeleton.
+const TARGET_Y = 0.95;
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
+const VIEW_OFFSETS: Record<CameraView, MotionVector3> = {
+  front: new THREE.Vector3(0, 0.45, 2.6),
+  side: new THREE.Vector3(2.6, 0.45, 0),
+  top: new THREE.Vector3(0, 3.2, 0.6),
+};
+
+const MODE_STYLE: Record<MotionMode, { boneColor: number; jointColor: number; boneRadius: number; jointRadius: number; opacity: number }> = {
+  coach: { boneColor: 0x111111, jointColor: 0x222222, boneRadius: 0.028, jointRadius: 0.04, opacity: 1 },
+  mesh: { boneColor: 0x444444, jointColor: 0x555555, boneRadius: 0.05, jointRadius: 0.06, opacity: 0.65 },
+  stress: { boneColor: 0x111111, jointColor: 0x222222, boneRadius: 0.03, jointRadius: 0.045, opacity: 1 },
+};
+
+const STRESS_JOINTS_BY_METRIC: Record<string, JointName[]> = {
+  knee: ["lKnee", "rKnee"],
+  hip: ["lHip", "rHip"],
+  spine: ["spine", "chest"],
+  ankle: ["lAnkle", "rAnkle"],
+  shoulder: ["lShoulder", "rShoulder"],
+  wrist: ["lWrist", "rWrist"],
+};
+const STRESS_COLOR = 0xff5500;
+
+interface BoneMesh {
+  mesh: InstanceType<typeof THREE.Mesh>;
+  material: InstanceType<typeof THREE.MeshStandardMaterial>;
+  quaternion: MotionQuaternion;
+  smoothed: MotionQuaternion;
+}
+
+interface JointMesh {
+  mesh: InstanceType<typeof THREE.Mesh>;
+  material: InstanceType<typeof THREE.MeshStandardMaterial>;
+}
+
+export class MotionStage {
+  private canvas: HTMLCanvasElement;
+  private loadingOverlay: HTMLElement;
+  private frameBuffer: MotionFrameBuffer;
+  private bus: EventBus;
+  private resources: ThreeResourceTracker;
+  private cameraOverlay: CameraOverlay | null;
+  private isCameraActive: () => boolean;
+  private interactions: StageInteractions;
+  private mode: MotionMode;
+  private view: CameraView;
+  private stress: boolean;
+  private running = false;
+  private lastUiEmit = 0;
+  private lastSequence = -1;
+  private cameraState = { yawOffset: 0, pitchOffset: 0, zoom: 1 };
+
+  private renderer: InstanceType<typeof THREE.WebGLRenderer>;
+  private scene: InstanceType<typeof THREE.Scene>;
+  private camera: InstanceType<typeof THREE.PerspectiveCamera>;
+  private skeletonGroup: InstanceType<typeof THREE.Group>;
+  private boneMeshes: Record<string, BoneMesh> = {};
+  private jointMeshes: Partial<Record<JointName, JointMesh>> = {};
+  private skeletonRotations: MotionQuaternion[];
+
+  constructor(options: StageOptions) {
+    this.canvas = options.canvas;
+    this.loadingOverlay = options.loadingOverlay;
+    this.frameBuffer = options.frameBuffer;
+    this.bus = options.bus;
+    this.cameraOverlay = options.cameraOverlay;
+    this.isCameraActive = options.isCameraActive;
+    this.mode = options.mode;
+    this.view = options.view;
+    this.stress = options.stress;
+    this.resources = new ThreeResourceTracker();
+    this.interactions = new StageInteractions(options.canvas, this.cameraState);
+    this.skeletonRotations = Array.from({ length: 24 }, () => new THREE.Quaternion());
+
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+    this.renderer.setClearColor(0xffffff, 0);
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+    const key = new THREE.DirectionalLight(0xffffff, 0.6);
+    key.position.set(1.5, 3, 2);
+    this.scene.add(ambient);
+    this.scene.add(key);
+    this.scene.add(key.target);
+
+    const grid = new THREE.GridHelper(4, 16, 0xcccccc, 0xeeeeee);
+    this.scene.add(grid);
+
+    this.skeletonGroup = new THREE.Group();
+    this.scene.add(this.skeletonGroup);
+    this.buildSkeletonMeshes();
+  }
+
+  async preload(): Promise<void> {
+    this.loadingOverlay.classList.remove("is-hidden");
+    await new Promise((resolve) => window.setTimeout(resolve, 220));
+    this.loadingOverlay.classList.add("is-hidden");
+  }
+
+  start(): void {
+    if (this.running) return;
+    this.running = true;
+    this.resize();
+    requestAnimationFrame((now) => this.tick(now));
+  }
+
+  stop(): void {
+    this.running = false;
+  }
+
+  resize(): void {
+    const rect = this.canvas.getBoundingClientRect();
+    const width = Math.max(1, Math.floor(rect.width));
+    const height = Math.max(1, Math.floor(rect.height));
+    this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+    this.renderer.setSize(width, height, false);
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    if (this.cameraOverlay) this.cameraOverlay.resize();
+  }
+
+  setMode(mode: MotionMode): void {
+    this.mode = mode;
+    this.applyModeStyle();
+  }
+
+  setView(view: CameraView): void {
+    this.view = view;
+    this.interactions.resetCameraOffsets();
+  }
+
+  setStress(enabled: boolean): void {
+    this.stress = enabled;
+  }
+
+  resetForSeed(): void {
+    this.resources.disposeSceneResources();
+    this.scene.remove(this.skeletonGroup);
+    this.boneMeshes = {};
+    this.jointMeshes = {};
+    this.skeletonGroup = new THREE.Group();
+    this.scene.add(this.skeletonGroup);
+    this.resources.createSceneResources();
+    this.buildSkeletonMeshes();
+    this.lastSequence = -1;
+    this.loadingOverlay.classList.remove("is-hidden");
+    window.setTimeout(() => this.loadingOverlay.classList.add("is-hidden"), 420);
+  }
+
+  private tick(now: number): void {
+    if (!this.running) return;
+    const frame = this.frameBuffer.readLatest();
+    this.updateCamera();
+    this.updateSkeleton(frame);
+    this.renderer.render(this.scene, this.camera);
+
+    if (frame && this.cameraOverlay && this.isCameraActive()) {
+      this.cameraOverlay.render(frame, now);
+    } else if (this.cameraOverlay && !this.isCameraActive()) {
+      this.cameraOverlay.clear();
+    }
+
+    const sequence = this.frameBuffer.getSequence();
+    if (frame && sequence !== this.lastSequence) {
+      this.consumeRotations(frame);
+      this.lastSequence = sequence;
+    }
+
+    if (frame && now - this.lastUiEmit > 120) {
+      this.lastUiEmit = now;
+      this.bus.emit("score:update", {
+        score: frame.score,
+        combo: frame.combo,
+        metrics: frame.metrics,
+        riskLabel: frame.riskLabel,
+        frame: frame.frame,
+        progress: frame.progress,
+      });
+    }
+
+    requestAnimationFrame((next) => this.tick(next));
+  }
+
+  private consumeRotations(frame: RuntimeFrame): void {
+    frame.localRotations.forEach((target, index) => {
+      const bone = this.skeletonRotations[index];
+      if (bone) {
+        bone.slerp(target, 0.4);
+      }
+    });
+  }
+
+  private buildSkeletonMeshes(): void {
+    const dir = new THREE.Vector3(0, 0, 0);
+    void dir;
+    bones.forEach(([a, b]) => {
+      const geometry = this.resources.trackGeometry(new THREE.CylinderGeometry(0.028, 0.028, 1, 12, 1));
+      const material = this.resources.trackMaterial(new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5, metalness: 0.1 }));
+      const mesh = new THREE.Mesh(geometry, material);
+      this.skeletonGroup.add(mesh);
+      this.boneMeshes[`${a}->${b}`] = {
+        mesh,
+        material,
+        quaternion: new THREE.Quaternion(),
+        smoothed: new THREE.Quaternion(),
+      };
+    });
+
+    const jointNames: JointName[] = [
+      "pelvis",
+      "spine",
+      "chest",
+      "neck",
+      "head",
+      "lShoulder",
+      "rShoulder",
+      "lElbow",
+      "rElbow",
+      "lWrist",
+      "rWrist",
+      "lHip",
+      "rHip",
+      "lKnee",
+      "rKnee",
+      "lAnkle",
+      "rAnkle",
+    ];
+    jointNames.forEach((name) => {
+      const radius = name === "head" ? 0.1 : 0.04;
+      const geometry = this.resources.trackGeometry(new THREE.SphereGeometry(radius, 16, 16));
+      const material = this.resources.trackMaterial(new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.1 }));
+      const mesh = new THREE.Mesh(geometry, material);
+      this.skeletonGroup.add(mesh);
+      this.jointMeshes[name] = { mesh, material };
+    });
+
+    this.applyModeStyle();
+  }
+
+  private applyModeStyle(): void {
+    const style = MODE_STYLE[this.mode];
+    Object.values(this.boneMeshes).forEach((b) => {
+      b.material.color.set(style.boneColor);
+      b.material.transparent = style.opacity < 1;
+      b.material.opacity = style.opacity;
+    });
+    (Object.entries(this.jointMeshes) as Array<[JointName, JointMesh]>).forEach(([name, joint]) => {
+      void name;
+      if (!joint) return;
+      joint.material.color.set(style.jointColor);
+      joint.material.transparent = style.opacity < 1;
+      joint.material.opacity = style.opacity;
+    });
+  }
+
+  private updateCamera(): void {
+    const base = VIEW_OFFSETS[this.view];
+    const yaw = this.cameraState.yawOffset;
+    const pitch = this.cameraState.pitchOffset;
+    const zoom = this.cameraState.zoom;
+    const distance = base.length() / zoom;
+    const cosYaw = Math.cos(yaw);
+    const sinYaw = Math.sin(yaw);
+    const x = (base.x * cosYaw - base.z * sinYaw) / base.length() * distance;
+    const z = (base.x * sinYaw + base.z * cosYaw) / base.length() * distance;
+    const y = base.y + pitch * 1.2;
+    this.camera.position.set(x, TARGET_Y + y, z);
+    this.camera.lookAt(0, TARGET_Y, 0);
+  }
+
+  private updateSkeleton(frame: RuntimeFrame | null): void {
+    if (!frame) {
+      this.skeletonGroup.visible = false;
+      return;
+    }
+    this.skeletonGroup.visible = true;
+
+    const seed = frame.seedJoints;
+    const pelvisX = seed.pelvis.position[0];
+    const offsetX = -pelvisX; // recentre skeleton on its own pelvis along X
+
+    // Update joints first so bones can read positions back.
+    const jointPos: Partial<Record<JointName, MotionVector3>> = {};
+    (Object.keys(this.jointMeshes) as JointName[]).forEach((name) => {
+      const handle = this.jointMeshes[name];
+      const joint = seed[name];
+      if (!handle || !joint) return;
+      const p = joint.position;
+      handle.mesh.position.set(p[0] + offsetX, p[1], p[2]);
+      jointPos[name] = handle.mesh.position;
+    });
+
+    const worst = this.stress || this.mode === "stress" ? worstMetric(frame) : null;
+    const stressJoints = worst && worst.risk !== "good" ? STRESS_JOINTS_BY_METRIC[worst.id] ?? [] : [];
+    const stressSet = new Set(stressJoints);
+    const baseJointColor = MODE_STYLE[this.mode].jointColor;
+    (Object.entries(this.jointMeshes) as Array<[JointName, JointMesh]>).forEach(([name, joint]) => {
+      if (!joint) return;
+      joint.material.color.set(stressSet.has(name) ? STRESS_COLOR : baseJointColor);
+    });
+
+    const baseBoneColor = MODE_STYLE[this.mode].boneColor;
+    const dirTmp = new THREE.Vector3();
+    bones.forEach(([a, b]) => {
+      const handle = this.boneMeshes[`${a}->${b}`];
+      if (!handle) return;
+      const pa = jointPos[a];
+      const pb = jointPos[b];
+      if (!pa || !pb) return;
+      dirTmp.subVectors(pb, pa);
+      const length = dirTmp.length();
+      if (length < 1e-5) {
+        handle.mesh.visible = false;
+        return;
+      }
+      handle.mesh.visible = true;
+      handle.mesh.position.set((pa.x + pb.x) * 0.5, (pa.y + pb.y) * 0.5, (pa.z + pb.z) * 0.5);
+      dirTmp.normalize();
+      handle.quaternion.setFromUnitVectors(Y_AXIS, dirTmp);
+      handle.smoothed.slerp(handle.quaternion, 0.5);
+      handle.mesh.quaternion.copy(handle.smoothed);
+      handle.mesh.scale.set(1, length, 1);
+      handle.material.color.set(stressSet.has(a) || stressSet.has(b) ? STRESS_COLOR : baseBoneColor);
+    });
+  }
+}
+
+function worstMetric(frame: RuntimeFrame): RuntimeFrame["metrics"][number] | null {
+  let worst: RuntimeFrame["metrics"][number] | null = null;
+  for (const m of frame.metrics) {
+    if (!worst || m.score < worst.score) worst = m;
+  }
+  return worst;
+}

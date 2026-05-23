@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>holomotion · real time motion coaching system</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+
+    <link rel="stylesheet" href="./src/styles.css" />
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://esm.sh/three@0.160.0",
+          "@mediapipe/tasks-vision": "https://esm.sh/@mediapipe/tasks-vision@0.10.14"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="rail" aria-label="Primary">
+        <div class="brand-mark">hm</div>
+
+        <nav class="rail-nav" aria-label="Workflow">
+          <button class="rail-item is-active" type="button" data-nav="seed" title="Seed">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5h14v14H5z" /><path d="m10 9 5 3-5 3V9z" /></svg>
+          </button>
+          <button class="rail-item" type="button" data-nav="rebuild" title="Rebuild">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" /><path d="M4 7l8 4 8-4M12 11v10" /></svg>
+          </button>
+          <button class="rail-item" type="button" data-nav="compare" title="Compare">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 4v16M17 4v16M4 8h6M14 8h6M4 16h6M14 16h6" /></svg>
+          </button>
+          <button class="rail-item" type="button" data-nav="score" title="Safety">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 19 12 5l7 14H5Z" /><path d="M12 10v4M12 17h.01" /></svg>
+          </button>
+        </nav>
+
+        <div class="rail-footer">
+          <span class="status-pill"><i></i>LIVE</span>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="title-block">
+            <p>real time motion coaching system · v0.1</p>
+            <h1>hol<b>ō</b>motion</h1>
+          </div>
+
+          <div class="top-actions">
+            <div class="connection" aria-live="polite">
+              <span id="connectionDot" class="connection-dot"></span>
+              <span id="connectionText">Mock WebSocket streaming</span>
+            </div>
+            <button id="cameraButton" class="icon-button" type="button" title="切换评委镜头">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h11a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H4V7Z" /><path d="m18 10 3-2v8l-3-2" /></svg>
+              <span>Lens</span>
+            </button>
+            <button id="cameraSettingsButton" class="icon-button" type="button" title="摄像头设置" aria-label="摄像头设置">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 7.03 4.24l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.18.34.28.71.28 1.08H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z" />
+              </svg>
+              <span>Cam</span>
+            </button>
+            <button id="dnaButton" class="icon-button" type="button" title="Action DNA">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4c4 4 8 12 12 16M18 4c-4 4-8 12-12 16M8 8h8M8 16h8" /></svg>
+              <span>DNA</span>
+            </button>
+            <button id="importButton" class="icon-button" type="button" title="导入短视频生成虚拟教练" aria-label="导入短视频">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 19h14" />
+              </svg>
+              <span>Import</span>
+            </button>
+            <button id="runPipelineButton" class="primary-button" type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 4 12 8-12 8V4Z" /></svg>
+              一键起势
+            </button>
+          </div>
+        </header>
+
+        <section class="seed-strip" aria-label="Seed carousel">
+          <div class="seed-strip-head">
+            <span class="eyebrow">01 · INPUT / SEED</span>
+            <strong id="seedHeadName">Deep Squat Tutor</strong>
+          </div>
+          <div id="seedCarousel" class="seed-carousel" role="listbox" aria-label="Seed actions"></div>
+        </section>
+
+        <section class="main-grid">
+          <!-- LEFT: 现实镜像 -->
+          <section class="bay" aria-label="现实镜像">
+            <div class="bay-toolbar">
+              <div>
+                <span class="eyebrow">02 · MIRROR / MEDIAPIPE</span>
+                <strong id="mirrorTitle">你的镜像</strong>
+              </div>
+              <div class="segmented" role="group" aria-label="镜头模式">
+                <button class="is-active" type="button" data-mode="coach">教练</button>
+                <button type="button" data-mode="mesh">骨骼</button>
+                <button type="button" data-mode="stress">应力</button>
+              </div>
+            </div>
+
+            <div class="bay-stage" id="mirrorStage">
+              <video id="cameraVideo" muted playsinline></video>
+              <canvas id="cameraOverlay" aria-label="MediaPipe overlay"></canvas>
+
+              <div id="mirrorEmpty" class="bay-empty">
+                <strong>点击 Lens 唤起摄像头</strong>
+                <span>AI WILL LOCK ONTO YOUR JOINTS</span>
+              </div>
+
+              <div class="hud hud-tl"><span>FPS</span><strong id="fpsLabel">60</strong></div>
+              <div class="hud hud-bl"><span>Δ</span><strong id="deltaLabel">12.4 cm</strong></div>
+
+              <div id="coachingTip" class="coaching-tip">重心再低 5 厘米，保护膝盖哦</div>
+
+              <div id="calibrationOverlay" class="calibration-overlay" aria-live="polite">
+                <strong id="calibrationTitle">校准中</strong>
+                <span id="calibrationHint">请站直，双臂自然下垂</span>
+                <div class="calibration-progress"><i id="calibrationBar"></i></div>
+                <button id="calibrationSkip" class="calibration-skip" type="button">跳过</button>
+              </div>
+
+              <div id="mirrorFx" class="fx-layer">
+                <div id="fxFlash" class="fx-flash"></div>
+                <div id="fxBurst" class="fx-burst">PERFECT</div>
+                <div id="fxCombo" class="fx-combo">COMBO ×01</div>
+              </div>
+            </div>
+
+            <div class="bay-playbar">
+              <button id="playButton" class="round-button" type="button" title="播放 / 暂停">
+                <svg id="playIcon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z" /></svg>
+              </button>
+              <label class="range-field">
+                <span>Tempo</span>
+                <input id="speedSlider" type="range" min="25" max="125" value="65" aria-label="速度" />
+              </label>
+              <label class="toggle-field">
+                <input id="stressToggle" type="checkbox" checked />
+                <span>应力提示</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- RIGHT: 全息标准舞台 -->
+          <section class="bay" aria-label="全息标准舞台">
+            <div class="bay-toolbar">
+              <div>
+                <span class="eyebrow">03 · COACH / SMPL-X</span>
+                <strong id="stageTitle">Deep Squat Tutor</strong>
+              </div>
+              <div class="view-controls" role="group" aria-label="视角">
+                <button class="is-active" type="button" data-view="front">Front</button>
+                <button type="button" data-view="side">Side</button>
+                <button type="button" data-view="top">Top</button>
+              </div>
+            </div>
+
+            <div class="bay-stage" id="stageBay">
+              <canvas id="motionCanvas" aria-label="3D 全息小人"></canvas>
+              <div id="loadingOverlay" class="loading-mask" aria-live="polite">
+                <strong>初始化全息舱…</strong>
+                <span>预加载 SMPL-Lite 骨骼 / 校准动作 DNA</span>
+              </div>
+
+              <div class="hud hud-tl"><span>Frame</span><strong id="frameLabel">000</strong></div>
+              <div class="hud hud-tr combo"><span>Combo</span><strong id="comboLabel">x08</strong></div>
+
+              <div class="score-orbit" aria-label="实时同步度">
+                <div>
+                  <span id="scoreValue">87</span>
+                  <small>SYNC</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="bay-playbar">
+              <span class="hud">PUSH · DRAG · ZOOM</span>
+              <label class="range-field">
+                <span>Timeline</span>
+                <input id="timeSlider" type="range" min="0" max="1000" value="120" aria-label="时间轴" />
+              </label>
+              <button id="finishButton" class="secondary-button" type="button" title="结算本回合">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                结算
+              </button>
+            </div>
+          </section>
+        </section>
+
+        <section class="timeline-panel" aria-label="动作节拍">
+          <div class="timeline-head">
+            <h2>04 · TIMELINE / SEED ALIGNMENT</h2>
+            <span id="timelineLabel">Cached seed compared with evaluator lens</span>
+          </div>
+          <div id="timelineFrames" class="timeline-frames"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Camera settings drawer -->
+    <aside id="cameraSettingsDrawer" class="dna-drawer" aria-label="摄像头设置">
+      <header class="dna-drawer-head">
+        <div>
+          <span class="eyebrow">06 · CAMERA</span>
+          <h2>camera setup</h2>
+        </div>
+        <button id="cameraSettingsClose" class="drawer-close" type="button" aria-label="关闭">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" /></svg>
+        </button>
+      </header>
+      <div class="dna-drawer-body">
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>DEVICE</h3>
+            <span>video input</span>
+          </div>
+          <label class="settings-field">
+            <span>摄像头</span>
+            <select id="cameraDeviceSelect"></select>
+          </label>
+          <p class="settings-hint">使用宽角度的外接摄像头可以更轻松地全身入镜。</p>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>FRAMING</h3>
+            <span>full body capture</span>
+          </div>
+          <label class="settings-field">
+            <span>画面适配</span>
+            <select id="cameraFitSelect">
+              <option value="contain">Contain · 保留完整画面</option>
+              <option value="cover">Cover · 充满容器（裁切）</option>
+            </select>
+          </label>
+          <label class="settings-field">
+            <span>分辨率</span>
+            <select id="cameraResolutionSelect"></select>
+          </label>
+          <label class="settings-toggle">
+            <input id="cameraMirrorToggle" type="checkbox" />
+            <span>水平镜像（自拍视角）</span>
+          </label>
+          <label class="settings-toggle">
+            <input id="cameraSafeZoneToggle" type="checkbox" />
+            <span>显示全身取景安全区</span>
+          </label>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>POSE ENGINE</h3>
+            <span>mediapipe model</span>
+          </div>
+          <label class="settings-field">
+            <span>精度模式</span>
+            <select id="poseModelSelect">
+              <option value="lite">Lite · 低延迟（默认）</option>
+              <option value="full">Full · 均衡</option>
+              <option value="heavy">Heavy · 高精度</option>
+            </select>
+          </label>
+          <label class="settings-toggle">
+            <input id="modalityPoseToggle" type="checkbox" checked />
+            <span>身体姿态识别</span>
+          </label>
+          <label class="settings-toggle">
+            <input id="modalityHandToggle" type="checkbox" checked />
+            <span>双手识别（21 × 2 关键点）</span>
+          </label>
+          <label class="settings-toggle">
+            <input id="modalityFaceToggle" type="checkbox" checked />
+            <span>面部识别（478 点 face mesh）</span>
+          </label>
+          <p class="settings-hint">关闭可减少模型下载与每帧推理开销。切换模型会重新加载推理任务，可能短暂掉帧。</p>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>BODY CALIBRATION</h3>
+            <span id="calibrationStatusLabel">未校准</span>
+          </div>
+          <button id="recalibrateButton" type="button" class="secondary-button">站直 1 秒重新校准</button>
+          <p class="settings-hint">校准会记录身高、肩宽、腿长，使打分更稳定。</p>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Import drawer (短视频 → 虚拟动作教具) -->
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="importDrawer" class="dna-drawer" aria-label="导入短视频">
+      <header class="dna-drawer-head">
+        <div>
+          <span class="eyebrow">07 · IMPORT</span>
+          <h2>video → coach</h2>
+        </div>
+        <button id="importClose" class="drawer-close" type="button" aria-label="关闭">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" /></svg>
+        </button>
+      </header>
+      <div class="dna-drawer-body">
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>SOURCE</h3>
+            <span>standard motion clip</span>
+          </div>
+          <label id="importDrop" class="import-drop" for="importFile">
+            <strong>选择视频或拖拽到这里</strong>
+            <span>建议正面 / 侧面拍摄、全身入境的 mp4，时长 3-15 秒</span>
+            <input id="importFile" type="file" accept="video/*" hidden />
+          </label>
+          <video id="importPreview" class="import-preview" muted playsinline></video>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>SHAPE</h3>
+            <span>motion category</span>
+          </div>
+          <label class="settings-field">
+            <span>动作类型</span>
+            <select id="importMotionSelect">
+              <option value="flow">Flow · 通用 / 流动</option>
+              <option value="squat">Squat · 下蹲</option>
+              <option value="hinge">Hinge · 髋铰</option>
+              <option value="bounce">Bounce · 弹跳</option>
+              <option value="throw">Throw · 投掷</option>
+            </select>
+          </label>
+          <p class="settings-hint">仅用于打分 metric 权重提示；不影响骨架重建。</p>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>PARSE</h3>
+            <span id="importStatus">等待上传视频</span>
+          </div>
+          <div class="import-progress"><i id="importProgress"></i></div>
+          <div class="import-progress-label" id="importProgressLabel">—</div>
+          <div class="import-actions">
+            <button id="importStart" class="secondary-button" type="button">开始解析</button>
+            <button id="importApply" class="primary-button" type="button">应用为当前教练</button>
+          </div>
+          <p class="settings-hint">使用 Heavy 模型按 30fps 离线抽帧；首次解析需要下载 ~10MB 模型。会话刷新会回到默认教练。</p>
+        </section>
+      </div>
+    </aside>
+
+    <!-- DNA drawer -->
+    <aside id="dnaDrawer" class="dna-drawer" aria-label="Action DNA inspector">
+      <header class="dna-drawer-head">
+        <div>
+          <span class="eyebrow">05 · INSPECTOR</span>
+          <h2>action dna</h2>
+        </div>
+        <button id="drawerClose" class="drawer-close" type="button" aria-label="关闭">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" /></svg>
+        </button>
+      </header>
+      <div class="dna-drawer-body">
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>RISK · JOINT METRICS</h3>
+            <span id="riskBadge" class="risk-badge">Clean alignment</span>
+          </div>
+          <div id="metricList"></div>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>INFERENCE · PIPELINE</h3>
+            <span id="pipelineLatency">42 ms</span>
+          </div>
+          <div id="pipelineList"></div>
+        </section>
+        <section class="drawer-section">
+          <div class="section-head">
+            <h3>SMPL-X · DNA PARAMETERS</h3>
+            <span id="streamLabel">MediaPipe mock active</span>
+          </div>
+          <dl id="dnaList" class="dna-list"></dl>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Results screen -->
+    <div id="resultsScreen" class="results-screen" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="results-card">
+        <header class="results-head">
+          <div>
+            <span class="eyebrow">SESSION RESULT</span>
+            <h2 id="resultsTitle">本次动作匹配度 92%</h2>
+          </div>
+          <button id="resultsClose" class="results-close" type="button" aria-label="关闭">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12" /></svg>
+          </button>
+        </header>
+
+        <div class="results-grid">
+          <div class="results-score">
+            <div class="big" id="resultsScore">92</div>
+            <div class="label">SYNC SCORE</div>
+            <div class="beat">击败了全球 <b id="resultsBeat">89%</b> 的数字练习者</div>
+          </div>
+          <div class="results-side">
+            <div class="medal">
+              <div class="medal-mark">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2l3 6 6 1-4.5 4 1 6.5L12 16l-5.5 3.5 1-6.5L3 9l6-1 3-6Z" /></svg>
+              </div>
+              <div class="medal-text">
+                <span class="label">UNLOCKED MEDAL</span>
+                <strong id="medalName">太极初窥门径</strong>
+              </div>
+            </div>
+            <div class="results-stats">
+              <div><span>Combo Max</span><strong id="resultsCombo">×18</strong></div>
+              <div><span>Perfect Frames</span><strong id="resultsPerfect">142</strong></div>
+              <div><span>Avg Δ</span><strong id="resultsDelta">7.2 cm</strong></div>
+              <div><span>Risk Hits</span><strong id="resultsRisk">3</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-cta">
+          <span class="cta-text">一键生成你的 3D 动作分身 DNA 二创短视频，发回抖音装个杯。</span>
+          <button id="exportButton" class="primary-button" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 19h14" /></svg>
+            生成 DNA 二创视频
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export modal -->
+    <div id="dnaExport" class="dna-export" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="dna-export-card">
+        <h3 id="exportHead">渲染 DNA 视频中…</h3>
+        <p id="exportSub">正在把你的动作打成抖音可一键投递的格式</p>
+        <div class="dna-progress"><i id="exportBar"></i></div>
+        <div class="dna-progress-label" id="exportLabel">0%</div>
+        <div id="exportQr" class="dna-qr" style="display: none;">
+          <div class="dna-qr-code" id="exportQrCode"></div>
+          <small>使用抖音扫一扫 · seed#deep-squat</small>
+        </div>
+        <button id="exportClose" class="secondary-button" type="button">关闭</button>
+      </div>
+    </div>
+
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+export interface CameraStateRef {
+  yawOffset: number;
+  pitchOffset: number;
+  zoom: number;
+}
+
+export class StageInteractions {
+  private canvas: HTMLCanvasElement;
+  private state: CameraStateRef;
+  private dragging = false;
+  private lastPointerX = 0;
+  private lastPointerY = 0;
+
+  constructor(canvas: HTMLCanvasElement, state: CameraStateRef) {
+    this.canvas = canvas;
+    this.state = state;
+    this.bind();
+  }
+
+  resetCameraOffsets(): void {
+    this.state.yawOffset = 0;
+    this.state.pitchOffset = 0;
+  }
+
+  private bind(): void {
+    this.canvas.addEventListener("pointerdown", (event) => {
+      this.dragging = true;
+      this.lastPointerX = event.clientX;
+      this.lastPointerY = event.clientY;
+      this.canvas.setPointerCapture(event.pointerId);
+    });
+    this.canvas.addEventListener("pointermove", (event) => {
+      if (!this.dragging) return;
+      const dx = event.clientX - this.lastPointerX;
+      const dy = event.clientY - this.lastPointerY;
+      this.lastPointerX = event.clientX;
+      this.lastPointerY = event.clientY;
+      this.state.yawOffset += dx * 0.008;
+      this.state.pitchOffset = Math.max(-0.6, Math.min(0.6, this.state.pitchOffset + dy * 0.005));
+    });
+    const release = (event: PointerEvent) => {
+      this.dragging = false;
+      try {
+        this.canvas.releasePointerCapture(event.pointerId);
+      } catch {
+        // ignore
+      }
+    };
+    this.canvas.addEventListener("pointerup", release);
+    this.canvas.addEventListener("pointercancel", release);
+    this.canvas.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        const factor = Math.exp(-event.deltaY * 0.0015);
+        this.state.zoom = Math.max(0.55, Math.min(1.8, this.state.zoom * factor));
+      },
+      { passive: false },
+    );
+    this.canvas.addEventListener("dblclick", () => {
+      this.state.yawOffset = 0;
+      this.state.pitchOffset = 0;
+      this.state.zoom = 1;
+    });
+  }
+}

@@ -1,0 +1,102 @@
+.hud {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  border: var(--hairline);
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  z-index: 3;
+}
+
+.hud span { text-transform: uppercase; letter-spacing: 0.16em; font-size: 9px; }
+.hud strong {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-tl { left: 14px; top: 14px; }
+.hud-tr { right: 14px; top: 14px; }
+.hud-bl { left: 14px; bottom: 14px; }
+.hud-br { right: 14px; bottom: 14px; }
+
+.hud.combo {
+  flex-direction: row;
+  gap: 10px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--ink);
+  color: var(--invert-fg);
+  border-color: var(--ink);
+}
+
+.hud.combo span { color: rgba(255, 255, 255, 0.6); }
+.hud.combo strong {
+  color: var(--invert-fg);
+  font-size: 16px;
+  letter-spacing: -0.04em;
+}
+
+.score-orbit {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 120px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  border: var(--hairline);
+  background: var(--surface);
+  z-index: 3;
+}
+
+.score-orbit > div { display: grid; place-items: center; gap: 0; padding: 6px 0; }
+
+.score-orbit span {
+  font-family: var(--mono);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-orbit small {
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.coaching-tip {
+  position: absolute;
+  z-index: 4;
+  max-width: 220px;
+  padding: 8px 10px 8px 12px;
+  border: var(--hairline);
+  border-left: 4px solid var(--hot);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 140ms linear;
+}
+
+.coaching-tip.is-visible {
+  opacity: 1;
+}

@@ -1,0 +1,226 @@
+export const $ =                    (selector        )    => {
+  const element = document.querySelector   (selector);
+  if (!element) throw new Error(`Missing element: ${selector}`);
+  return element;
+};
+
+export const $$ =                    (selector        )      =>
+  Array.from(document.querySelectorAll   (selector));
+
+                          
+                          
+                           
+                              
+                             
+                        
+                           
+                                
+                                         
+                                  
+                              
+
+                          
+                            
+                          
+                          
+                         
+                          
+                          
+                               
+                           
+                       
+
+                            
+                            
+                                   
+                              
+                             
+
+                       
+                       
+                       
+                       
+                           
+                           
+
+                             
+                            
+                            
+                           
+                            
+                              
+                            
+                           
+                         
+                            
+                            
+
+                         
+                           
+                         
+                           
+                          
+                         
+                        
+                            
+
+                         
+                              
+                         
+                           
+
+                                    
+                                    
+                                   
+                                        
+                                            
+                                     
+                                       
+                                         
+                                     
+                                       
+                                       
+                                       
+                                       
+                                      
+
+                                  
+                                
+                               
+                              
+                                     
+
+                            
+                            
+                           
+                               
+                          
+                                        
+                                 
+                                 
+                              
+                                   
+                            
+                                  
+
+                                 
+                                   
+                                
+                       
+                                 
+                                
+                               
+                                  
+                                 
+                            
+ 
+
+export function collectDomRefs()          {
+  return {
+    stageTitle: $("#stageTitle"),
+    mirrorTitle: $("#mirrorTitle"),
+    connectionText: $("#connectionText"),
+    connectionDot: $("#connectionDot"),
+    fpsLabel: $("#fpsLabel"),
+    mirrorEmpty: $("#mirrorEmpty"),
+    cameraVideo: $("#cameraVideo")                    ,
+    cameraOverlayCanvas: $("#cameraOverlay")                     ,
+    motionCanvas: $("#motionCanvas")                     ,
+    loadingOverlay: $("#loadingOverlay"),
+
+    metricList: $("#metricList"),
+    pipelineList: $("#pipelineList"),
+    scoreValue: $("#scoreValue"),
+    comboLabel: $("#comboLabel"),
+    riskBadge: $("#riskBadge"),
+    frameLabel: $("#frameLabel"),
+    deltaLabel: $("#deltaLabel"),
+    pipelineLatency: $("#pipelineLatency"),
+    streamLabel: $("#streamLabel"),
+    dnaList: $("#dnaList"),
+
+    seedCarousel: $("#seedCarousel"),
+    seedHeadName: $("#seedHeadName"),
+    modeButtons: $$                   ("[data-mode]"),
+    timelineFrames: $("#timelineFrames"),
+    timelineLabel: $("#timelineLabel"),
+
+    fxLayer: $("#mirrorFx"),
+    fxFlash: $("#fxFlash"),
+    fxBurst: $("#fxBurst"),
+    fxCombo: $("#fxCombo"),
+    coachingTip: $("#coachingTip"),
+    mirrorStage: $("#mirrorStage"),
+
+    resultsScreen: $("#resultsScreen"),
+    resultsClose: $("#resultsClose"),
+    resultsScore: $("#resultsScore"),
+    resultsBeat: $("#resultsBeat"),
+    resultsCombo: $("#resultsCombo"),
+    resultsPerfect: $("#resultsPerfect"),
+    resultsDelta: $("#resultsDelta"),
+    resultsRisk: $("#resultsRisk"),
+    medalName: $("#medalName"),
+    resultsTitle: $("#resultsTitle"),
+    exportButton: $("#exportButton"),
+
+    dnaExport: $("#dnaExport"),
+    exportClose: $("#exportClose"),
+    exportBar: $("#exportBar"),
+    exportLabel: $("#exportLabel"),
+    exportHead: $("#exportHead"),
+    exportSub: $("#exportSub"),
+    exportQr: $("#exportQr"),
+    exportQrCode: $("#exportQrCode"),
+
+    dnaDrawer: $("#dnaDrawer"),
+    drawerBackdrop: $("#drawerBackdrop"),
+    dnaButton: $("#dnaButton"),
+    drawerClose: $("#drawerClose"),
+
+    cameraSettingsDrawer: $("#cameraSettingsDrawer"),
+    cameraSettingsButton: $("#cameraSettingsButton"),
+    cameraSettingsClose: $("#cameraSettingsClose"),
+    cameraDeviceSelect: $("#cameraDeviceSelect")                     ,
+    cameraResolutionSelect: $("#cameraResolutionSelect")                     ,
+    cameraFitSelect: $("#cameraFitSelect")                     ,
+    cameraMirrorToggle: $("#cameraMirrorToggle")                    ,
+    cameraSafeZoneToggle: $("#cameraSafeZoneToggle")                    ,
+    poseModelSelect: $("#poseModelSelect")                     ,
+    modalityPoseToggle: $("#modalityPoseToggle")                    ,
+    modalityHandToggle: $("#modalityHandToggle")                    ,
+    modalityFaceToggle: $("#modalityFaceToggle")                    ,
+    recalibrateButton: $("#recalibrateButton")                     ,
+    calibrationStatusLabel: $("#calibrationStatusLabel"),
+
+    calibrationOverlay: $("#calibrationOverlay"),
+    calibrationTitle: $("#calibrationTitle"),
+    calibrationHint: $("#calibrationHint"),
+    calibrationBar: $("#calibrationBar"),
+    calibrationSkip: $("#calibrationSkip")                     ,
+
+    importDrawer: $("#importDrawer"),
+    importButton: $("#importButton"),
+    importClose: $("#importClose"),
+    importFile: $("#importFile")                    ,
+    importDrop: $("#importDrop"),
+    importMotionSelect: $("#importMotionSelect")                     ,
+    importStart: $("#importStart")                     ,
+    importApply: $("#importApply")                     ,
+    importProgress: $("#importProgress"),
+    importProgressLabel: $("#importProgressLabel"),
+    importStatus: $("#importStatus"),
+    importPreview: $("#importPreview")                    ,
+
+    railItems: $$                   (".rail-item"),
+    viewButtons: $$                   ("[data-view]"),
+    playButton: $("#playButton")                     ,
+    playIcon: $("#playIcon")                         ,
+    stressToggle: $("#stressToggle")                    ,
+    speedSlider: $("#speedSlider")                    ,
+    timeSlider: $("#timeSlider")                    ,
+    cameraButton: $("#cameraButton")                     ,
+    runPipelineButton: $("#runPipelineButton"),
+    finishButton: $("#finishButton"),
+  };
+}

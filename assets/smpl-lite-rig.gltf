@@ -1,0 +1,30 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "HoloMotion mock rig preloader"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [0]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "SMPL-Lite-Root",
+      "children": [1, 2, 3, 4]
+    },
+    {
+      "name": "Pelvis"
+    },
+    {
+      "name": "Spine"
+    },
+    {
+      "name": "LeftArm"
+    },
+    {
+      "name": "RightArm"
+    }
+  ]
+}

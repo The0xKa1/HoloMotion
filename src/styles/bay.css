@@ -1,0 +1,246 @@
+.main-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 14px;
+}
+
+.bay {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(360px, 1fr) auto;
+  border: var(--hairline);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.bay-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: var(--hairline);
+  position: relative;
+  z-index: 2;
+}
+
+.bay-toolbar .eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bay-toolbar strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bay-stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(17, 17, 17, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.06) 1px, transparent 1px),
+    var(--surface);
+  background-size: 40px 40px, 40px 40px, auto;
+}
+
+#cameraVideo,
+#cameraOverlay,
+#motionCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#cameraVideo {
+  object-fit: contain;
+  background: #000;
+  opacity: 0;
+  transform: scaleX(-1);
+  transition: opacity 160ms linear;
+}
+
+#cameraVideo.is-cover {
+  object-fit: cover;
+  background: transparent;
+}
+
+#cameraVideo.no-mirror {
+  transform: none;
+}
+
+#cameraVideo.is-visible {
+  opacity: 1;
+}
+
+#cameraOverlay {
+  pointer-events: none;
+}
+
+#motionCanvas { cursor: grab; }
+#motionCanvas:active { cursor: grabbing; }
+
+.bay-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.bay-empty strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.bay-empty span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.bay-empty.is-hidden { display: none; }
+
+.bay-playbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: var(--hairline);
+  background: var(--surface);
+  position: relative;
+  z-index: 2;
+}
+
+.bay-playbar .range-field {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.bay-playbar > .hud {
+  position: static;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  height: auto;
+}
+
+.loading-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  background: var(--surface);
+  pointer-events: none;
+  transition: opacity 200ms linear;
+}
+
+.loading-mask strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.loading-mask span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.loading-mask.is-hidden { opacity: 0; }
+
+.calibration-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.88);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.calibration-overlay.is-visible {
+  display: flex;
+}
+
+.calibration-overlay strong {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.calibration-overlay span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.calibration-progress {
+  width: min(260px, 70%);
+  height: 4px;
+  background: rgba(17, 17, 17, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.calibration-progress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--value, 0%);
+  background: var(--hot);
+  transition: width 120ms linear;
+}
+
+.calibration-skip {
+  appearance: none;
+  border: var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.calibration-skip:hover {
+  background: var(--invert-bg);
+  color: var(--invert-fg);
+}
