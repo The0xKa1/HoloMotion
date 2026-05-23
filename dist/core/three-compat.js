@@ -1,9 +1,12 @@
 import {
   AmbientLight as ThreeAmbientLight,
+  BufferAttribute as ThreeBufferAttribute,
   BufferGeometry as ThreeBufferGeometry,
   Color as ThreeColor,
   CylinderGeometry as ThreeCylinderGeometry,
   DirectionalLight as ThreeDirectionalLight,
+  DoubleSide as ThreeDoubleSide,
+  DynamicDrawUsage as ThreeDynamicDrawUsage,
   GridHelper as ThreeGridHelper,
   Group as ThreeGroup,
   Material as ThreeMaterial,
@@ -22,10 +25,13 @@ import {
 
 export const THREE = {
   AmbientLight: ThreeAmbientLight,
+  BufferAttribute: ThreeBufferAttribute,
   BufferGeometry: ThreeBufferGeometry,
   Color: ThreeColor,
   CylinderGeometry: ThreeCylinderGeometry,
   DirectionalLight: ThreeDirectionalLight,
+  DoubleSide: ThreeDoubleSide,
+  DynamicDrawUsage: ThreeDynamicDrawUsage,
   GridHelper: ThreeGridHelper,
   Group: ThreeGroup,
   Material: ThreeMaterial,

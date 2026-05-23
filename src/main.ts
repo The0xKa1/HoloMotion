@@ -28,6 +28,8 @@ import { useWebSocket } from "./hooks/useWebSocket.js";
 import { collectDomRefs } from "./bootstrap/dom.js";
 import { MockStream, type MockStreamState } from "./bootstrap/MockStream.js";
 import { ConnectionIndicator, renderDnaList, beatsPerMinute } from "./bootstrap/uiHelpers.js";
+import { getCoachClipManifest, loadCoachClip } from "./core/import/loadCoachClip.js";
+import { loadMeshClip } from "./core/import/MeshClip.js";
 import type { ExerciseId, MotionMode } from "./types/motion.js";
 
 const dom = collectDomRefs();
@@ -375,13 +377,46 @@ window.addEventListener("resize", () => stage.resize());
 
 const DEFAULT_WS_URL = "ws://localhost:8000/motion";
 
-void stage.preload().then(() => {
+void stage.preload().then(async () => {
+  await hydrateCoachClips();
+  await hydrateMeshClip();
   setExercise(state.exerciseId, "Mock WebSocket streaming");
   mockStream.start();
   stage.start();
   const wsUrl = new URLSearchParams(window.location.search).get("ws") ?? DEFAULT_WS_URL;
   socket.connect(wsUrl);
 });
+
+async function hydrateMeshClip(): Promise<void> {
+  try {
+    const clip = await loadMeshClip("public/coach_clips/single_leg_squat.mesh.meta.json");
+    stage.setMeshClip(clip);
+    console.info(
+      `[mesh-clip] loaded ${clip.meta.frameCount} frames · ${clip.meta.vertexCount} verts · ${clip.meta.faceCount} faces`,
+    );
+  } catch (err) {
+    console.warn("[mesh-clip] skip:", err);
+  }
+}
+
+async function hydrateCoachClips(): Promise<void> {
+  await Promise.all(
+    getCoachClipManifest().map(async ({ exercise, url }) => {
+      try {
+        const clip = await loadCoachClip(url);
+        const current = exercises[exercise];
+        exercises[exercise] = {
+          ...current,
+          clip,
+          durationSeconds: clip.durationSeconds,
+          motion: clip.motion,
+        };
+      } catch (err) {
+        console.warn(`[coach-clip] skip ${exercise}:`, err);
+      }
+    }),
+  );
+}
 
 function setMode(nextMode: MotionMode): void {
   state.mode = nextMode;

@@ -6,6 +6,12 @@ import { ThreeResourceTracker } from "./ThreeResourceTracker.js";
 import { THREE,                                           } from "./three-compat.js";
 import { bones } from "./motion/skeleton.js";
 import { StageInteractions } from "./motion/StageInteractions.js";
+import {
+  buildMeshPrimitive,
+  copyFrameVerticesInto,
+  sampleFrameIndex,
+                
+} from "./import/MeshClip.js";
                                                                                           
 
                         
@@ -60,6 +66,15 @@ const STRESS_COLOR = 0xff5500;
                                                             
  
 
+                           
+                 
+                                        
+                                                      
+                                                            
+                          
+                         
+ 
+
 export class MotionStage {
           canvas                   ;
           loadingOverlay             ;
@@ -84,6 +99,7 @@ export class MotionStage {
           boneMeshes                           = {};
           jointMeshes                                        = {};
           skeletonRotations                    ;
+          smplxHandle                         = null;
 
   constructor(options              ) {
     this.canvas = options.canvas;
@@ -162,6 +178,30 @@ export class MotionStage {
     this.stress = enabled;
   }
 
+  setMeshClip(clip          )       {
+    this.clearMeshClip();
+    const { mesh, geometry, material, positions } = buildMeshPrimitive(clip);
+    this.scene.add(mesh);
+    this.smplxHandle = {
+      clip,
+      mesh,
+      geometry,
+      material,
+      positions,
+      lastFrameIndex: -1,
+    };
+    this.applyModeStyle();
+  }
+
+  clearMeshClip()       {
+    if (!this.smplxHandle) return;
+    this.scene.remove(this.smplxHandle.mesh);
+    this.smplxHandle.geometry.dispose();
+    this.smplxHandle.material.dispose();
+    this.smplxHandle = null;
+    this.applyModeStyle();
+  }
+
   resetForSeed()       {
     this.resources.disposeSceneResources();
     this.scene.remove(this.skeletonGroup);
@@ -172,6 +212,7 @@ export class MotionStage {
     this.resources.createSceneResources();
     this.buildSkeletonMeshes();
     this.lastSequence = -1;
+    if (this.smplxHandle) this.smplxHandle.lastFrameIndex = -1;
     this.loadingOverlay.classList.remove("is-hidden");
     window.setTimeout(() => this.loadingOverlay.classList.add("is-hidden"), 420);
   }
@@ -181,6 +222,7 @@ export class MotionStage {
     const frame = this.frameBuffer.readLatest();
     this.updateCamera();
     this.updateSkeleton(frame);
+    this.updateSmplxMesh(frame);
     this.renderer.render(this.scene, this.camera);
 
     if (frame && this.cameraOverlay && this.isCameraActive()) {
@@ -302,7 +344,8 @@ export class MotionStage {
       this.skeletonGroup.visible = false;
       return;
     }
-    this.skeletonGroup.visible = true;
+    this.skeletonGroup.visible = this.smplxHandle === null;
+    if (this.smplxHandle) return;
 
     const seed = frame.seedJoints;
     const pelvisX = seed.pelvis.position[0];
@@ -351,6 +394,24 @@ export class MotionStage {
       handle.mesh.scale.set(1, length, 1);
       handle.material.color.set(stressSet.has(a) || stressSet.has(b) ? STRESS_COLOR : baseBoneColor);
     });
+  }
+
+          updateSmplxMesh(frame                     )       {
+    const handle = this.smplxHandle;
+    if (!handle) return;
+    if (!frame) {
+      handle.mesh.visible = false;
+      return;
+    }
+    handle.mesh.visible = true;
+    const idx = sampleFrameIndex(handle.clip, frame.progress);
+    if (idx === handle.lastFrameIndex) return;
+    handle.lastFrameIndex = idx;
+    copyFrameVerticesInto(handle.clip, idx, handle.positions);
+    const attr = handle.geometry.getAttribute("position")                                              ;
+    attr.needsUpdate = true;
+    handle.geometry.computeVertexNormals();
+    handle.geometry.computeBoundingSphere();
   }
 }
 

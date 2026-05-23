@@ -1,0 +1,20 @@
+{
+  "id": "basic-single-leg-squat",
+  "name": "Basic Single Leg Squat",
+  "motion": "squat",
+  "fps": 15,
+  "durationSeconds": 7.867,
+  "frameCount": 118,
+  "vertexCount": 10475,
+  "faceCount": 20908,
+  "vertexBytes": 14832600,
+  "faceBytes": 250896,
+  "vertexBin": "single_leg_squat.mesh.bin",
+  "faceBin": "single_leg_squat.mesh.faces.bin",
+  "vertexDtype": "float32",
+  "faceDtype": "uint32",
+  "source": "sam-3d-body + mhr2smplx barycentric",
+  "format": "holomotion.mesh_clip.v1",
+  "unit": "meters",
+  "handedness": "right-hand"
+}
